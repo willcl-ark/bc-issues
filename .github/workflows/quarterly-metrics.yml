@@ -1,0 +1,40 @@
+name: Quarterly issue metrics
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: issue metrics
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+    - name: Get dates for last quarter
+      shell: bash
+      run: |
+        # Calculate the first day of the last quarter
+        first_day=$(date -d "$(date +%Y-%m-01) -3 month" +%Y-%m-01)
+
+        # Calculate the last day of the last quarter
+        last_day=$(date -d "$first_day +3 month -1 day" +%Y-%m-%d)
+
+        #Set an environment variable with the date range
+        echo "$first_day..$last_day"
+        echo "last_quarter=$first_day..$last_day" >> "$GITHUB_ENV"
+
+    - name: Run issue-metrics tool
+      uses: github/issue-metrics@v3
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        SEARCH_QUERY: 'repo:bitcoin/bitcoin is:issue created:${{ env.last_quarter }}'
+
+    - name: Create issue
+      uses: peter-evans/create-issue-from-file@v5
+      with:
+        title: Quarterly issue metrics report
+        token: ${{ secrets.GH_TOKEN }}
+        content-filepath: ./issue_metrics.md
