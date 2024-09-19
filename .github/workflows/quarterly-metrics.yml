@@ -31,6 +31,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         SEARCH_QUERY: 'repo:bitcoin/bitcoin is:issue created:${{ env.last_quarter }}'
+        NON_MENTIONING_LINKS: true
 
     - name: Create issue
       uses: peter-evans/create-issue-from-file@v5
